@@ -1,0 +1,17 @@
+<launch>
+    <!-- 
+        This launchfile expects a can interface connected to the medium speed bus of a Ford Fusion 2017.
+        It sends messages received on can0 to `received_messages` and forwards messages to the can interface
+        when they are sent to `sent_messages`.
+
+        For testing, a virtual can interface can be used with canplayer and the provided can dumps in the test folder.
+    -->
+    <node pkg="socketcan_bridge" type="socketcan_bridge_node" name="socketcan_bridge_node" output="screen">
+        <param name="can_device" value="can0" />
+    </node>
+
+    <node pkg="celsius" name="celsius" type="interface.py" output="screen">
+          <param name="control_topic" value="celsius_control" />
+          <param name="report_topic" value="celsius_report" />
+    </node>
+</launch>
