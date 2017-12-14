@@ -1,11 +1,26 @@
 #!/usr/bin/env python
 import rospy
 import re
+import capnp
+import zmq
 
 from can_msgs.msg import Frame
 from struct import unpack
 from binascii import unhexlify
-from std_msgs.msg import Float64, UInt8
+from std_msgs.msg import Float64, UInt8, UInt32
+
+# capnp
+capnp.remove_import_hook()
+car_capnp = capnp.load('./src/celsius/msg/msg_capnp/car.capnp')
+
+# zmq
+PORT_CAR_STATE = 8021
+IP = '*'
+address = "tcp://%s:%d" % (IP, PORT_CAR_STATE)
+print address
+context = zmq.Context()
+pub = context.socket(zmq.PUB)
+pub.bind(address)
 
 class Enumeration(set):
     def __getattr__(self, name):
@@ -24,7 +39,7 @@ MAX_SIZE_BITS = 64
 TOPICS = {
     514: {
         'SPEED': {
-            Constants.TYPE: Float64
+            Constants.TYPE: UInt32
         }
     },
     145: {
@@ -56,12 +71,15 @@ def create_topics():
             current_topic[name][Constants.TOPIC] = rospy.Publisher(name.strip('_'), current_topic[name][Constants.TYPE], queue_size=10)
 
 def parse_number(data, options):
+    car_state = car_capnp.CarState.new_message()
+
     hex_num = ''.join(data).encode('hex')
     bits = int(hex_num, 16)
     spec = '{fill}{align}{width}{type}'.format(fill='0', align='>', width=64, type='b')
     bits = format(bits, spec)
     ## bits = bin(int(''.join(data).encode('hex'), 16))
     output = {}
+
     for elem in options.keys():
         current_settings = options[elem]
 
@@ -69,11 +87,20 @@ def parse_number(data, options):
         end = start + current_settings[Constants.SIZE]
         current_bits = bits[start:(end if end < MAX_SIZE_BITS else MAX_SIZE_BITS)]
 
-        if(current_settings[Constants.ENDIAN] == 1):
+        # check signed (+: unsigned, -:unsigned)
+
+        if(current_settings[Constants.ENDIAN]): # is big endian
             current_bits = current_bits[::-1]
     
-        output[elem] = int(current_bits, 2) * current_settings[Constants.SCALE]
+        output[elem] = int(current_bits, 2)# * current_settings[Constants.SCALE] + current_settings[Constants.OFFSET]
         current_settings[Constants.TOPIC].publish(output[elem])
+        if elem == 'SPEED':
+            car_state.vEgo = output[elem]
+    
+    # publish zmq 8021 for car state
+    print car_state
+    pub.send(car_state.to_bytes())
+    
     return output
 
 def import_format(lines):

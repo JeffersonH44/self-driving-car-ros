@@ -7,7 +7,7 @@
         For testing, a virtual can interface can be used with canplayer and the provided can dumps in the test folder.
     -->
     <node pkg="socketcan_bridge" type="socketcan_bridge_node" name="socketcan_bridge_node" output="screen">
-        <param name="can_device" value="can0" />
+        <param name="can_device" value="hs1" />
     </node>
 
     <node pkg="celsius" name="celsius" type="interface.py" output="screen">
