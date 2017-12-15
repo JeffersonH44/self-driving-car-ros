@@ -16,4 +16,4 @@ sudo ip link set up hs2
 sudo ip link set up hs3
 sudo ip link set up ms1
 
-/usr/bin/tmux new-session -s fakecan -d canplayer -l i -I /home/jefferson/sdc-start/80can.log hs1=can0 hs2=can1 hs3=can2
+/usr/bin/tmux new-session -s fakecan -d canplayer -l i -I ./80can.log hs1=can0 hs2=can1 hs3=can2
