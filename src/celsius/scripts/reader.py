@@ -60,7 +60,7 @@ TOPICS = {
     }
 }
 
-file = '/home/jefferson/sdc-start/src/celsius/scripts/ford.dbc'
+file = './src/celsius/scripts/ford.dbc'
 
 def create_topics():
     rospy.init_node('publisher', anonymous=True)

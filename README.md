@@ -11,3 +11,8 @@
 9. check rostopic list for message receiver topic
 10. install pycapnp
 11. install pyzmq
+
+0. bash start.sh
+1. roscore
+2. roslaunch celsius test.launch
+3. rosrun celsius reader.py
